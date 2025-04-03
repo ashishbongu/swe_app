@@ -19,7 +19,7 @@ libclang==18.1.1
 lxml==5.2.1
 matplotlib==3.9.2
 mediapipe==0.10.21
-mkl-service==2.4.0
+mkl-service==2.4.2
 ml_dtypes==0.5.1
 multitasking==0.0.11
 namex==0.0.8
