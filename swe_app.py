@@ -150,37 +150,72 @@ def predict():
     })
 
 # Sentiment analysis endpoint
+# Function to get company info and fallback news (from your template)
+def get_company_info(stock_symbol):
+    try:
+        company = yf.Ticker(stock_symbol)
+        info = company.info
+
+        # Try to get recent news
+        news = []
+        try:
+            news_data = company.news
+            if news_data and len(news_data) > 0:
+                for item in news_data[:5]:  # Limit to 5
+                    if 'title' in item:
+                        news.append(item['title'])
+        except:
+            pass
+
+        # Fallback headlines
+        if not news:
+            name = info.get('shortName', stock_symbol)
+            sector = info.get('sector', 'Unknown')
+            news = [
+                f"{name} quarterly earnings expected next month.",
+                f"{name} expanding operations in {sector} sector.",
+                f"Analysts update ratings for {name}."
+            ]
+
+        return {
+            "name": info.get('shortName', stock_symbol),
+            "sector": info.get('sector', 'Unknown'),
+            "industry": info.get('industry', 'Unknown'),
+            "news": news
+        }
+    except Exception as e:
+        print(f"Error fetching company info: {e}")
+        return {
+            "name": stock_symbol,
+            "sector": "Unknown",
+            "industry": "Unknown",
+            "news": [
+                f"{stock_symbol} quarterly earnings expected next month.",
+                f"{stock_symbol} market conditions changing.",
+                f"Investors watching {stock_symbol} closely."
+            ]
+        }
+
+# Updated sentiment analysis endpoint using get_company_info
 @app.route('/sentiment', methods=['GET'])
 def sentiment():
     stock_symbol = request.args.get('symbol', '').upper()
-    company = yf.Ticker(stock_symbol)
-    news = company.news
-    
+    info = get_company_info(stock_symbol)
+    headlines = info['news']
+
     sentiment_pipeline = pipeline("sentiment-analysis", model="ProsusAI/finbert")
     results = []
-    
-    # Loop through the news items
-    for item in news[:5]:
-        # Safely get the 'title' key using .get() to avoid KeyError
-        headline = item.get('title', 'No title available')
-        
-        # If headline exists, proceed with sentiment analysis
-        if headline != 'No title available':
-            sentiment = sentiment_pipeline(headline)[0]
-            results.append({
-                'headline': headline,
-                'sentiment': sentiment['label'],
-                'score': sentiment['score']
-            })
-        else:
-            # If no title, add a default result
-            results.append({
-                'headline': 'No title available',
-                'sentiment': 'N/A',
-                'score': 0.0
-            })
-    
+
+    for headline in headlines:
+        sentiment = sentiment_pipeline(headline)[0]
+        results.append({
+            'headline': headline,
+            'sentiment': sentiment['label'],
+            'score': sentiment['score']
+        })
+
     return jsonify({'sentiment_analysis': results})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
