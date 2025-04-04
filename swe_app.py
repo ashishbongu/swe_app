@@ -149,6 +149,34 @@ def predict():
         'graph': plot_url
     })
 
+
+@app.route('/')
+def home():
+    return '''
+    <html>
+        <head>
+            <title>Stock Predictor</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    text-align: center;
+                    margin-top: 100px;
+                }
+                h1 {
+                    color: #2c3e50;
+                }
+                p {
+                    color: #555;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Welcome to the Stock Predictor API</h1>
+            <p>Use the <code>/predict</code>, <code>/sentiment</code>, or <code>/company_info</code> endpoints via POST or GET requests.</p>
+        </body>
+    </html>
+    '''
+
 # Sentiment analysis endpoint
 # Function to get company info and fallback news (from your template)
 def get_company_info(stock_symbol):
