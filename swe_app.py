@@ -224,6 +224,12 @@ def get_company_info(stock_symbol):
             ]
         }
 
+try:
+    sentiment_pipeline = pipeline("sentiment-analysis", model="ProsusAI/finbert")
+except Exception as e:
+    print(f"Error loading FinBERT: {e}")
+    sentiment_pipeline = None
+
 # Updated sentiment analysis endpoint using get_company_info
 @app.route('/sentiment', methods=['GET'])
 def sentiment():
@@ -231,7 +237,6 @@ def sentiment():
     info = get_company_info(stock_symbol)
     headlines = info['news']
 
-    sentiment_pipeline = pipeline("sentiment-analysis", model="ProsusAI/finbert")
     results = []
 
     for headline in headlines:
