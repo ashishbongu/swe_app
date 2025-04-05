@@ -1,50 +1,42 @@
 import os
-import pickle
-from flask import Flask, request, jsonify
-import yfinance as yf
-import pandas as pd
 import numpy as np
+import pandas as pd
 import datetime
+import yfinance as yf
 import matplotlib.pyplot as plt
-from io import BytesIO
-import base64
+from flask import Flask, request, jsonify
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import LSTM, Dense, Dropout
+from tensorflow.keras.layers import LSTM, Dense, Dropout, Input
+from io import BytesIO
+import base64
 import requests
+import joblib
 from transformers import pipeline
 
 app = Flask(__name__)
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # force CPU, avoid CUDA errors
 
-# Cache for trained models and scalers
-trained_models = {}
-scalers = {}
-
-# -----------------------------
-# UTILS
-# -----------------------------
+MODEL_DIR = "saved_models"
+os.makedirs(MODEL_DIR, exist_ok=True)
 
 def get_stock_data(stock_symbol, years=4):
     end = datetime.datetime.now()
     start = end - datetime.timedelta(days=365 * years)
-    try:
-        df = yf.download(stock_symbol, start=start, end=end, progress=False)
-        if df.empty:
-            return None
-        df['MA20'] = df['Close'].rolling(20, min_periods=1).mean()
-        df['MA50'] = df['Close'].rolling(50, min_periods=1).mean()
-        df['RSI'] = 100 - (100 / (1 + df['Close'].diff().rolling(14).mean()))
-        df['Momentum'] = df['Close'].pct_change(5)
-        df['Volatility'] = df['Close'].rolling(20).std()
-        return df.dropna()
-    except Exception as e:
-        print(f"Error fetching data: {e}")
+    df = yf.download(stock_symbol, start=start, end=end, progress=False)
+    if df.empty:
         return None
+    df['MA20'] = df['Close'].rolling(20, min_periods=1).mean()
+    df['MA50'] = df['Close'].rolling(50, min_periods=1).mean()
+    df['RSI'] = 100 - (100 / (1 + df['Close'].diff().rolling(14).mean()))
+    df['Momentum'] = df['Close'].pct_change(5)
+    df['Volatility'] = df['Close'].rolling(20).std()
+    return df.dropna()
 
 def preprocess_data(data, seq_length=60):
-    feature_cols = ['Close', 'Volume', 'MA20', 'MA50', 'RSI', 'Momentum', 'Volatility']
+    features = ['Close', 'Volume', 'MA20', 'MA50', 'RSI', 'Momentum', 'Volatility']
     scaler = MinMaxScaler()
-    scaled = scaler.fit_transform(data[feature_cols])
+    scaled = scaler.fit_transform(data[features])
     X, y = [], []
     for i in range(len(scaled) - seq_length):
         X.append(scaled[i:i+seq_length])
@@ -53,11 +45,10 @@ def preprocess_data(data, seq_length=60):
 
 def build_lstm_model(input_shape):
     model = Sequential([
-        LSTM(128, return_sequences=True, input_shape=input_shape),
-        Dropout(0.3),
-        LSTM(64, return_sequences=True),
-        Dropout(0.2),
-        LSTM(32),
+        Input(shape=input_shape),
+        LSTM(32, return_sequences=True),
+        Dropout(0.1),
+        LSTM(16),
         Dropout(0.1),
         Dense(1)
     ])
@@ -79,48 +70,23 @@ def predict_future(model, last_seq, scaler, n_days=30):
     return scaler.inverse_transform(dummy)[:, 0]
 
 def generate_plot(actual, predicted, future):
-    if len(actual) == 0 or len(predicted) == 0 or len(future) == 0:
-        return None
     plt.figure(figsize=(10, 5))
     plt.plot(range(len(actual)), actual, label='Actual')
-    plt.plot(range(len(actual) - len(predicted), len(actual)), predicted, '--', label='Predicted')
-    plt.plot(range(len(actual), len(actual) + len(future)), future, ':', label='Future')
+    plt.plot(range(len(actual)-len(predicted), len(actual)), predicted, '--', label='Predicted')
+    plt.plot(range(len(actual), len(actual)+len(future)), future, ':', label='Future')
     plt.legend()
     plt.grid()
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png')
-    buffer.seek(0)
+    buf = BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
     plt.close()
-    return base64.b64encode(buffer.getvalue()).decode()
-
-def load_or_train_model(stock_symbol, X, y):
-    model_path = f'models/{stock_symbol}_model.h5'
-    scaler_path = f'models/{stock_symbol}_scaler.pkl'
-    os.makedirs('models', exist_ok=True)
-
-    if os.path.exists(model_path) and os.path.exists(scaler_path):
-        model = load_model(model_path)
-        with open(scaler_path, 'rb') as f:
-            scaler = pickle.load(f)
-    else:
-        model = build_lstm_model(X.shape[1:])
-        model.fit(X, y, epochs=3, batch_size=32, verbose=0)
-        model.save(model_path)
-        scaler = scalers[stock_symbol]
-        with open(scaler_path, 'wb') as f:
-            pickle.dump(scaler, f)
-
-    return model, scaler
-
-# -----------------------------
-# ROUTES
-# -----------------------------
+    return base64.b64encode(buf.getvalue()).decode()
 
 @app.route('/')
 def home():
     return '''
     <html><head><title>Stock Predictor</title></head>
-    <body style="text-align:center;font-family:sans-serif;">
+    <body style="text-align:center;">
         <h1>Stock Predictor</h1>
         <form method="POST" action="/predict">
             <label>Symbol: <input type="text" name="symbol" required></label><br><br>
@@ -147,12 +113,19 @@ def predict():
     if data is None:
         return jsonify({'error': 'Invalid stock symbol'}), 400
 
+    X, y, scaler = preprocess_data(data)
+    model_path = os.path.join(MODEL_DIR, f"{stock_symbol}_model.h5")
+    scaler_path = os.path.join(MODEL_DIR, f"{stock_symbol}_scaler.gz")
+
     try:
-        X, y, scaler = preprocess_data(data)
-        scalers[stock_symbol] = scaler
-        model, scaler = load_or_train_model(stock_symbol, X, y)
-        trained_models[stock_symbol] = model
-        scalers[stock_symbol] = scaler
+        if os.path.exists(model_path) and os.path.exists(scaler_path):
+            model = load_model(model_path)
+            scaler = joblib.load(scaler_path)
+        else:
+            model = build_lstm_model(X.shape[1:])
+            model.fit(X, y, epochs=3, batch_size=32, verbose=0)
+            model.save(model_path)
+            joblib.dump(scaler, scaler_path)
 
         future = predict_future(model, X[-1], scaler, pred_days)
         plot_url = generate_plot(data['Close'][-100:], y[-100:], future)
@@ -167,79 +140,58 @@ def predict():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/company_info', methods=['GET'])
+@app.route('/company_info')
 def company_info():
     symbol = request.args.get('symbol', '').upper()
-    if not symbol:
-        return jsonify({'error': 'Symbol required'}), 400
-    try:
-        ticker = yf.Ticker(symbol)
-        info = ticker.info
-        return jsonify({
-            'name': info.get('shortName', 'N/A'),
-            'sector': info.get('sector', 'N/A'),
-            'industry': info.get('industry', 'N/A'),
-            'market_cap': info.get('marketCap', 'N/A'),
-            '52_week_range': f"{info.get('fiftyTwoWeekLow', 'N/A')} - {info.get('fiftyTwoWeekHigh', 'N/A')}"
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    ticker = yf.Ticker(symbol)
+    info = ticker.info
+    return jsonify({
+        'name': info.get('shortName', 'N/A'),
+        'sector': info.get('sector', 'N/A'),
+        'industry': info.get('industry', 'N/A'),
+        'market_cap': info.get('marketCap', 'N/A'),
+        '52_week_range': f"{info.get('fiftyTwoWeekLow', 'N/A')} - {info.get('fiftyTwoWeekHigh', 'N/A')}"
+    })
 
-# -----------------------------
-# SENTIMENT ANALYSIS
-# -----------------------------
-
-HF_TOKEN = os.getenv("HF_TOKEN")  # Secure token usage
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 def get_company_info(symbol):
+    ticker = yf.Ticker(symbol)
+    info = ticker.info
+    news = []
     try:
-        ticker = yf.Ticker(symbol)
-        info = ticker.info
-        news = []
-        try:
-            raw_news = ticker.news or []
-            news = [n['title'] for n in raw_news[:5] if 'title' in n]
-        except:
-            pass
-        if not news:
-            name = info.get('shortName', symbol)
-            sector = info.get('sector', 'Unknown')
-            news = [
-                f"{name} quarterly earnings expected next month.",
-                f"{name} expanding in {sector}.",
-                f"Analysts update ratings for {name}."
-            ]
-        return {
-            "name": info.get('shortName', symbol),
-            "sector": info.get('sector', 'Unknown'),
-            "industry": info.get('industry', 'Unknown'),
-            "news": news
-        }
+        raw_news = ticker.news or []
+        news = [n['title'] for n in raw_news[:5] if 'title' in n]
     except:
-        return {
-            "name": symbol,
-            "sector": "Unknown",
-            "industry": "Unknown",
-            "news": [
-                f"{symbol} quarterly earnings expected soon.",
-                f"{symbol} market conditions shifting.",
-                f"Investors watch {symbol} closely."
-            ]
-        }
+        pass
+    if not news:
+        name = info.get('shortName', symbol)
+        sector = info.get('sector', 'Unknown')
+        news = [
+            f"{name} earnings expected.",
+            f"{name} expands in {sector}.",
+            f"Analysts watching {name} closely."
+        ]
+    return {
+        "name": info.get('shortName', symbol),
+        "sector": info.get('sector', 'Unknown'),
+        "industry": info.get('industry', 'Unknown'),
+        "news": news
+    }
 
 def get_sentiment_from_api(text):
     api_url = "https://api-inference.huggingface.co/models/ProsusAI/finbert"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     try:
-        response = requests.post(api_url, headers=headers, json={"inputs": text})
-        if response.status_code == 200:
-            result = response.json()
+        r = requests.post(api_url, headers=headers, json={"inputs": text})
+        if r.status_code == 200:
+            result = r.json()
             return result[0] if isinstance(result, list) else {"label": "Neutral", "score": 0.0}
     except:
         pass
     return {"label": "Neutral", "score": 0.0}
 
-@app.route('/sentiment', methods=['GET'])
+@app.route('/sentiment')
 def sentiment():
     symbol = request.args.get('symbol', '').upper()
     info = get_company_info(symbol)
@@ -253,8 +205,5 @@ def sentiment():
         })
     return jsonify({'sentiment_analysis': results})
 
-# -----------------------------
-# Run app
-# -----------------------------
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
