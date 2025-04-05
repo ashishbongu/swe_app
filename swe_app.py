@@ -10,7 +10,7 @@ from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from transformers import pipeline
-
+import requests
 
 
 app = Flask(__name__)
@@ -224,11 +224,21 @@ def get_company_info(stock_symbol):
             ]
         }
 
-try:
-    sentiment_pipeline = pipeline("sentiment-analysis", model="ProsusAI/finbert")
-except Exception as e:
-    print(f"Error loading FinBERT: {e}")
-    sentiment_pipeline = None
+
+
+HF_TOKEN = "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"  # Replace this with your Hugging Face token
+
+def get_sentiment_from_api(text):
+    api_url = "https://api-inference.huggingface.co/models/ProsusAI/finbert"
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+    
+    response = requests.post(api_url, headers=headers, json={"inputs": text})
+    
+    if response.status_code == 200:
+        return response.json()[0]  # Returns: [{'label': 'Positive', 'score': 0.98}]
+    else:
+        return {"label": "Neutral", "score": 0.0}
+
 
 # Updated sentiment analysis endpoint using get_company_info
 @app.route('/sentiment', methods=['GET'])
@@ -240,7 +250,7 @@ def sentiment():
     results = []
 
     for headline in headlines:
-        sentiment = sentiment_pipeline(headline)[0]
+        sentiment = get_sentiment_from_api(headline)
         results.append({
             'headline': headline,
             'sentiment': sentiment['label'],
@@ -248,6 +258,7 @@ def sentiment():
         })
 
     return jsonify({'sentiment_analysis': results})
+
 
 
 if __name__ == '__main__':
