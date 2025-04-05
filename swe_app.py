@@ -235,9 +235,10 @@ def get_sentiment_from_api(text):
     response = requests.post(api_url, headers=headers, json={"inputs": text})
     
     if response.status_code == 200:
-        return response.json()[0]  # Returns: [{'label': 'Positive', 'score': 0.98}]
-    else:
-        return {"label": "Neutral", "score": 0.0}
+        result = response.json()
+        if isinstance(result, list) and len(result) > 0:
+            return result[0]  # Return the first item in the list ✅
+    return {"label": "Neutral", "score": 0.0}
 
 
 # Updated sentiment analysis endpoint using get_company_info
