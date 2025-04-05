@@ -250,14 +250,15 @@ def sentiment():
     results = []
 
     for headline in headlines:
-        sentiment = get_sentiment_from_api(headline)
+        analysis = get_sentiment_from_api(headline)  # changed name from 'sentiment' to 'analysis'
         results.append({
             'headline': headline,
-            'sentiment': sentiment['label'],
-            'score': sentiment['score']
+            'sentiment': analysis['label'],
+            'score': analysis['score']
         })
 
     return jsonify({'sentiment_analysis': results})
+
 
 
 
