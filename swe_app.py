@@ -1,4 +1,5 @@
 import os
+import pickle
 from flask import Flask, request, jsonify
 import yfinance as yf
 import pandas as pd
@@ -8,14 +9,14 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
 from sklearn.preprocessing import MinMaxScaler
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 import requests
 from transformers import pipeline
 
 app = Flask(__name__)
 
-# Cache for trained models
+# Cache for trained models and scalers
 trained_models = {}
 scalers = {}
 
@@ -92,6 +93,25 @@ def generate_plot(actual, predicted, future):
     plt.close()
     return base64.b64encode(buffer.getvalue()).decode()
 
+def load_or_train_model(stock_symbol, X, y):
+    model_path = f'models/{stock_symbol}_model.h5'
+    scaler_path = f'models/{stock_symbol}_scaler.pkl'
+    os.makedirs('models', exist_ok=True)
+
+    if os.path.exists(model_path) and os.path.exists(scaler_path):
+        model = load_model(model_path)
+        with open(scaler_path, 'rb') as f:
+            scaler = pickle.load(f)
+    else:
+        model = build_lstm_model(X.shape[1:])
+        model.fit(X, y, epochs=3, batch_size=32, verbose=0)
+        model.save(model_path)
+        scaler = scalers[stock_symbol]
+        with open(scaler_path, 'wb') as f:
+            pickle.dump(scaler, f)
+
+    return model, scaler
+
 # -----------------------------
 # ROUTES
 # -----------------------------
@@ -128,16 +148,11 @@ def predict():
         return jsonify({'error': 'Invalid stock symbol'}), 400
 
     try:
-        if stock_symbol in trained_models:
-            model = trained_models[stock_symbol]
-            scaler = scalers[stock_symbol]
-            X, y, _ = preprocess_data(data)
-        else:
-            X, y, scaler = preprocess_data(data)
-            model = build_lstm_model(X.shape[1:])
-            model.fit(X, y, epochs=3, batch_size=32, verbose=0)
-            trained_models[stock_symbol] = model
-            scalers[stock_symbol] = scaler
+        X, y, scaler = preprocess_data(data)
+        scalers[stock_symbol] = scaler
+        model, scaler = load_or_train_model(stock_symbol, X, y)
+        trained_models[stock_symbol] = model
+        scalers[stock_symbol] = scaler
 
         future = predict_future(model, X[-1], scaler, pred_days)
         plot_url = generate_plot(data['Close'][-100:], y[-100:], future)
@@ -174,7 +189,7 @@ def company_info():
 # SENTIMENT ANALYSIS
 # -----------------------------
 
-HF_TOKEN = os.getenv("HF_TOKEN")  # Replace hardcoded token with env var
+HF_TOKEN = os.getenv("HF_TOKEN")  # Secure token usage
 
 def get_company_info(symbol):
     try:
