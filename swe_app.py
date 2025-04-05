@@ -145,31 +145,41 @@ def home():
     '''
 
 # Endpoint for predictions
+# Global variables to cache model and scaler
+trained_models = {}
+scalers = {}
+
 @app.route('/predict', methods=['GET', 'POST'])
 def predict():
     if request.method == 'POST':
-        # Support form submission
         stock_symbol = request.form.get('symbol', '').upper()
         pred_days = int(request.form.get('days', 30))
     else:
-        # Optional: support raw JSON as fallback
         data = request.get_json() or {}
         stock_symbol = data.get('symbol', '').upper()
         pred_days = int(data.get('days', 30))
 
-    stock_data = get_stock_data(stock_symbol)
-    if stock_data is None:
-        return jsonify({'error': 'Invalid stock symbol or no data available'}), 400
+    if stock_symbol in trained_models:
+        model = trained_models[stock_symbol]
+        scaler = scalers[stock_symbol]
+        stock_data = get_stock_data(stock_symbol)
+        X, y, _ = preprocess_data(stock_data)
+    else:
+        stock_data = get_stock_data(stock_symbol)
+        if stock_data is None:
+            return jsonify({'error': 'Invalid stock symbol or no data available'}), 400
 
-    X, y, scaler = preprocess_data(stock_data)
-    model = build_lstm_model(X.shape[1:])
-    model.fit(X, y, epochs=5, batch_size=32, verbose=0)
+        X, y, scaler = preprocess_data(stock_data)
+        model = build_lstm_model(X.shape[1:])
+        model.fit(X, y, epochs=3, batch_size=32, verbose=0)
+
+        trained_models[stock_symbol] = model
+        scalers[stock_symbol] = scaler
 
     future_predictions = predict_future(model, X[-1], scaler, pred_days)
     plot_url = generate_plot(stock_data['Close'][-100:], y[-100:], future_predictions)
 
     if request.method == 'POST':
-        # Render HTML template with results
         return f"""
         <h2>Predictions for {stock_symbol}</h2>
         <p>{future_predictions.tolist()}</p>
@@ -177,13 +187,10 @@ def predict():
         <br><a href="/">Back</a>
         """
     else:
-        # Return JSON if called via API
         return jsonify({
             'predictions': future_predictions.tolist(),
             'graph': plot_url
         })
-
-
 
 
 
