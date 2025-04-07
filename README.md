@@ -9,7 +9,7 @@ This repository contains a Flask web application for predicting stock prices usi
 - **23BDS062 - TARAN JAIN**
 - **23BDS016 - CHAITRA V KATTIMANI** 
 - **23BDS027 - KANISHK PANDEY** 
-- **23BDS0XX - ISHAN**
+- **23BDS023 - ISHAN SRIVASTAVA**
 
 
 ## Tech Stack
