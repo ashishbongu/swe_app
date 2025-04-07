@@ -23,7 +23,7 @@ This repository contains a Flask web application for predicting stock prices usi
 | Data             | Yahoo Finance (yfinance)            |
 | Deployment       | Localhost, Render(limited access)   |
 
-##FOLDER STRUCTURE
+## FOLDER STRUCTURE
 
 <pre lang="nohighlight"><code> 
 .
