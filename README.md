@@ -23,6 +23,47 @@ This repository contains a Flask web application for predicting stock prices usi
 | Data             | Yahoo Finance (yfinance)            |
 | Deployment       | Localhost, Render(limited access)   |
 
+##FOLDER STRUCTURE
+
+<pre lang="nohighlight"><code> 
+.
+├── .env
+├── .gitignore
+├── app.py
+├── best_model.pth
+├── best_params.json
+├── CNAME
+├── lstm_model.py
+├── README.md
+│
+├── static
+│   ├── backtesting_plot.png
+│   ├── feedback.png
+│   ├── forecast.png
+│   ├── future_plot.png
+│   ├── info.png
+│   ├── logo.png
+│   ├── pngegg.png
+│   ├── predictions.csv
+│   └── styles.css
+│
+├── templates
+│   ├── company-info.html
+│   ├── index.html
+│   ├── login.html
+│   ├── prediction.html
+│   ├── prediction_result.html
+│   └── sentiment.html
+│
+├── web development
+│   └── index.html
+│
+└── __pycache__
+    └── lstm_model.cpython-312.pyc
+
+</code></pre>
+
+
 
 ## How to Use
 
