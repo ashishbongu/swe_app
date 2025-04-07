@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Prediction - StockPulse AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="logo-container">
+                
+                <h1>TradeSecret</h1>
+            </div>
+            <div class="user-menu">
+                <span>Welcome, User1</span>
+                <a style="background-color: red;" href="/" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <nav>
+                <ul>
+                    <ul>
+                        <li class="{% if request.path == '/prediction' %}active{% endif %}"><a href="/prediction">Stock Prediction</a></li>
+                        <li class="{% if request.path == '/sentiment' %}active{% endif %}"><a href="/sentiment">Sentiment Analysis</a></li>
+                        <li class="{% if request.path == '/company-info' %}active{% endif %}"><a href="/company-info">Company Info</a></li>
+                        <li><a href="#">Settings</a></li>
+                    </ul>
+                </ul>
+            </nav>
+        </div>
+        
+        <main class="main-content">
+                <div class="ticker-table-container">
+                    <h3>Example Ticker Symbols</h3>
+                    <table class="ticker-table">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Ticker Symbol</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Apple Inc.</td><td>AAPL</td></tr>
+                            <tr><td>Alphabet Inc. (Google)</td><td>GOOG</td></tr>
+                            <tr><td>Microsoft Corporation</td><td>MSFT</td></tr>
+                            <tr><td>Amazon.com, Inc.</td><td>AMZN</td></tr>
+                            <tr><td>Tesla, Inc.</td><td>TSLA</td></tr>
+                            <tr><td>Meta Platforms, Inc. (Facebook)</td><td>META</td></tr>
+                            <tr><td>NVIDIA Corporation</td><td>NVDA</td></tr>
+                            <tr><td>Netflix, Inc.</td><td>NFLX</td></tr>
+                            <tr><td>Adobe Inc.</td><td>ADBE</td></tr>
+                            <tr><td>Salesforce, Inc.</td><td>CRM</td></tr>
+                            <tr><td>Intel Corporation</td><td>INTC</td></tr>
+                            <tr><td>PayPal Holdings, Inc.</td><td>PYPL</td></tr>
+                            <tr><td>Advanced Micro Devices, Inc.</td><td>AMD</td></tr>
+                            <tr><td>Broadcom Inc.</td><td>AVGO</td></tr>
+                            <tr><td>Qualcomm Incorporated</td><td>QCOM</td></tr>
+                            <tr><td>Texas Instruments</td><td>TXN</td></tr>
+                            <tr><td>Oracle Corporation</td><td>ORCL</td></tr>
+                            <tr><td>Shopify Inc.</td><td>SHOP</td></tr>
+                            <tr><td>Uber Technologies, Inc.</td><td>UBER</td></tr>
+                            <tr><td>Lyft, Inc.</td><td>LYFT</td></tr>
+                            <tr><td>Zoom Video Communications</td><td>ZM</td></tr>
+                            <tr><td>Spotify Technology S.A.</td><td>SPOT</td></tr>
+                            <tr><td>Block, Inc. (Square)</td><td>SQ</td></tr>
+                            <tr><td>Roku, Inc.</td><td>ROKU</td></tr>
+                            <tr><td>Snap Inc.</td><td>SNAP</td></tr>
+                            <tr><td>Twitter, Inc.</td><td>TWTR</td></tr>
+                            <tr><td>Dropbox, Inc.</td><td>DBX</td></tr>
+                            <tr><td>Palantir Technologies Inc.</td><td>PLTR</td></tr>
+                            <tr><td>Robinhood Markets, Inc.</td><td>HOOD</td></tr>
+                            <tr><td>Intel Corporation</td><td>INTC</td></tr>
+                            <tr><td>AT&T Inc.</td><td>T</td></tr>
+                            <tr><td>Verizon Communications Inc.</td><td>VZ</td></tr>
+                            <tr><td>Walmart Inc.</td><td>WMT</td></tr>
+                            <tr><td>Target Corporation</td><td>TGT</td></tr>
+                            <tr><td>Costco Wholesale Corporation</td><td>COST</td></tr>
+                            <tr><td>Home Depot, Inc.</td><td>HD</td></tr>
+                            <tr><td>The Coca-Cola Company</td><td>KO</td></tr>
+                            <tr><td>PepsiCo, Inc.</td><td>PEP</td></tr>
+                            <tr><td>McDonald’s Corporation</td><td>MCD</td></tr>
+                            <tr><td>Starbucks Corporation</td><td>SBUX</td></tr>
+                            <tr><td>Visa Inc.</td><td>V</td></tr>
+                            <tr><td>Mastercard Incorporated</td><td>MA</td></tr>
+                            <tr><td>JPMorgan Chase & Co.</td><td>JPM</td></tr>
+                            <tr><td>Bank of America Corporation</td><td>BAC</td></tr>
+                            <tr><td>Goldman Sachs Group, Inc.</td><td>GS</td></tr>
+                            <tr><td>Morgan Stanley</td><td>MS</td></tr>
+                            <tr><td>American Express Company</td><td>AXP</td></tr>
+                            <tr><td>Wells Fargo & Company</td><td>WFC</td></tr>
+                        </tbody>
+                    </table>
+                </div>    
+
+        </main>
+    </div>
+</body>
+</html>

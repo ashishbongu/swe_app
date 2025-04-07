@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis - StockPulse AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="logo-container">
+                
+                <h1>TradeSecret</h1>
+            </div>
+            <div class="user-menu">
+                <span>Welcome, User1</span>
+                <a style="background-color: red;" href="/" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <nav>
+                <ul>
+                    <li class="{% if request.path == '/prediction' %}active{% endif %}"><a href="/prediction">Stock Prediction</a></li>
+                    <li class="{% if request.path == '/sentiment' %}active{% endif %}"><a href="/sentiment">Sentiment Analysis</a></li>
+                    <li class="{% if request.path == '/company-info' %}active{% endif %}"><a href="/company-info">Company Info</a></li>
+                    <li><a href="#">Settings</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <main class="main-content">
+            <section class="sentiment-form">
+                <h2>Sentiment Analysis</h2>
+                <form method="POST">
+                    <input type="text" name="ticker" placeholder="Enter ticker e.g. AAPL" required>
+                    <button type="submit" class="predict-button">Analyze</button>
+                </form>
+
+                {% if sentiments %}
+                    <h3>Results for {{ ticker.upper() }}</h3>
+                    <table class="sentiment-table">
+                        <thead>
+                            <tr>
+                                <th>Headline</th>
+                                <th>Sentiment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in sentiments %}
+                            <tr>
+                                <td>{{ item.headline }}</td>
+                                <td class="{{ item.sentiment.lower() }}">{{ item.sentiment }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </section>
+        </main>
+    </div>
+</body>
+</html>

@@ -3,24 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradeSecret - Predictive Stock Analysis</title>
+    <title>StockPulse AI - Predictive Stock Analysis</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
         <div class="container">
             <div class="logo-container">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="StockPulse AI Logo">
-                <h1>TradeSecret</h1>
+                <img src="logo.png" alt="StockPulse AI Logo">
+                <h1>StockPulse AI</h1>
             </div>
             <nav>
                 <ul>
                     <li><a href="#features">Features</a></li>
                     <li><a href="#about">About</a></li>
                     <li><a href="#pricing">Pricing</a></li>
-                    <li><a href="{{ url_for('login') }}" class="login-btn">Login</a></li>
+                    <li><a href="login.html" class="login-btn">Login</a></li>
                 </ul>
             </nav>
         </div>
@@ -30,11 +29,11 @@
         <div class="container">
             <div class="hero-content">
                 <h1>Predict with Precision, Invest with Confidence</h1>
-                <p>A LSTM Based stock prediction model and Sentiment Analysis of business news using Finbert model</p>
-                <a href="{{ url_for('login') }}" class="cta-button">Start Predicting Now</a>
+                <p>Advanced AI algorithms to forecast stock movements with unprecedented accuracy</p>
+                <a href="login.html" class="cta-button">Start Predicting Now</a>
             </div>
             <div class="hero-image">
-                <img src="{{ url_for('static', filename='pngegg.png') }}" alt="Stock Chart Visualization">
+                <img src="hero-chart.png" alt="Stock Chart Visualization">
             </div>
         </div>
     </section>
@@ -44,17 +43,17 @@
             <h2>Powerful Prediction Features</h2>
             <div class="feature-grid">
                 <div class="feature-card">
-                    <img src="{{ url_for('static', filename='forecast.png') }}" alt="Prediction Icon">
+                    <img src="icon-prediction.png" alt="Prediction Icon">
                     <h3>Intelligent Price Forecasting</h3>
-                    <p>Uses LSTM model to predict future stock prices with high accuracy</p>
+                    <p>Advanced machine learning models predict future stock prices with high accuracy</p>
                 </div>
                 <div class="feature-card">
-                    <img src="{{ url_for('static', filename='feedback.png') }}" alt="Sentiment Icon">
+                    <img src="icon-sentiment.png" alt="Sentiment Icon">
                     <h3>Market Sentiment Analysis</h3>
                     <p>Gauge market sentiment through AI-powered news and social media analysis</p>
                 </div>
                 <div class="feature-card">
-                    <img src="{{ url_for('static', filename='info.png') }}" alt="Information Icon">
+                    <img src="icon-info.png" alt="Information Icon">
                     <h3>Comprehensive Company Data</h3>
                     <p>Access detailed financial information and performance metrics</p>
                 </div>

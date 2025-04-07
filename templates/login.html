@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - StockPulse AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-logo">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="StockPulse AI Logo">
+                <h1>TradeSecret</h1>
+            </div>
+            <h2>Login to Your Account</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password"  required>
+                </div>
+                <button type="submit" class="login-button">Login</button>
+                <div id="error-message" class="error-message"></div>
+            </form>
+            <div class="login-footer">
+                <p>Don't have an account? <a href="#">Contact us</a></p>
+                <p style="color: rgb(0, 0, 0);">username: <b style="color: rgb(3, 145, 17);">user1</b> password: <b style="color: rgb(5, 146, 23);">abc@123</b></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === 'user1' && password === 'abc@123') {
+                window.location.href = "{{ url_for('prediction') }}";
+            } else {
+                document.getElementById('error-message').textContent = 'Invalid username or password';
+            }
+        });
+    </script>
+</body>
+</html>
