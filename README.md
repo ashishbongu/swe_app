@@ -1,24 +1,28 @@
-# Stock Price Prediction with LSTM Models
+# Tradesecret - Stock Price Forecasting and Sentiment Analyizer
 
-This repository contains a Flask web application for predicting stock prices using Long Short-Term Memory (LSTM) neural networks. The application fetches historical stock data from Yahoo Finance API (`yfinance`), preprocesses the data by adding moving average features, normalizes it using Min-Max scaling, and trains LSTM models with different hyperparameters.
+This repository contains a Flask web application for predicting stock prices using Long Short-Term Memory (LSTM) neural networks. The application fetches historical stock data from Yahoo Finance API (`yfinance`), preprocesses the data by adding moving average features, normalizes it using Min-Max scaling, and trains LSTM models with different hyperparameters and also analyzes the sentimment analysis of latest new headlines of a chosen company using ***finBert LLM model***.
 
-## Key Features
 
-- **Data Preprocessing:** Includes adding moving average features to enhance model performance.
-- **Model Training:** Utilizes LSTM models with varying architectures (layers, hidden dimensions, dropout) to predict stock prices.
-- **Hyperparameter Tuning:** Grid search over predefined parameters to optimize model performance.
-- **Web Application:** Built using Flask to allow users to input a stock ticker symbol and a date, then receive predictions for future stock prices.
-- **Visualization:** Generates plots using `matplotlib` to visualize predicted prices and backtesting results.
-- **Backtesting Strategy:** Evaluates a simple trading strategy based on predicted signals.
+## Group Members
+- **23BDS014 - BONGU ASHISH**
+- **23BDS041 - PB SHREYAS**
+- **23BDS062 - TARAN JAIN**
+- **23BDS016 - CHAITRA V KATTIMANI** 
+- **23BDS027 - KANISHK PANDEY** 
+- **23BDS0XX - ISHAN**
 
-## Technologies Used
 
-- Python
-- Flask
-- PyTorch (for LSTM models)
-- `yfinance` (Yahoo Finance API)
-- `matplotlib` (for plotting)
-- `sklearn` (for data preprocessing)
+## Tech Stack
+
+| Layer            | Technology                         |
+|------------------|-------------------------------------|
+| Backend          | Flask, Python, REST API             |
+| Frontend         | HTML, CSS, Jinja2, Bootstrap        |
+| Machine Learning | PyTorch, LSTM, LLM ([FinBERT](https://huggingface.co/ProsusAI/finbert)) |
+| News API         | NewsData.io                         |
+| Data             | Yahoo Finance (yfinance)            |
+| Deployment       | Localhost, Render(limited access)   |
+
 
 ## How to Use
 
