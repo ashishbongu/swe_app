@@ -93,7 +93,10 @@ This repository contains a Flask web application for predicting stock prices usi
    It will display this and there you go !! Ctrl+click on the link to navigate to local server
 ![Screenshot 2025-04-07 101733](https://github.com/user-attachments/assets/8c3ab48e-b204-4a67-8f03-bf508c94f822)
 
- 
+
+
+ [Uploading SWE_Report.pdf…]()
+
 ## SNAPSHOTS OF OUR WEB APPLICATION - TRADE SECRET
 
 ![Screenshot 2025-04-07 080200](https://github.com/user-attachments/assets/40069881-440b-4010-8028-3061c6bccccd)
